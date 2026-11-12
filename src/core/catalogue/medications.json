@@ -1,0 +1,28 @@
+{
+  "version": "0.0.0-placeholder",
+  "updated_at": "2026-11-12",
+  "disclaimer": "Reference information from manufacturer labels. Not medical advice — follow your prescriber's instructions.",
+  "medications": [
+    {
+      "id": "semaglutide-injection-weight",
+      "generic_name": "semaglutide",
+      "brand_names": { "US": ["Wegovy"], "GB": ["Wegovy"] },
+      "form": "injection",
+      "indication": "Weight management",
+      "strengths": [
+        { "value": 0.25, "unit": "mg" },
+        { "value": 0.5, "unit": "mg" },
+        { "value": 1, "unit": "mg" },
+        { "value": 1.7, "unit": "mg" },
+        { "value": 2.4, "unit": "mg" }
+      ],
+      "default_schedule": "weekly",
+      "pill_rules": null,
+      "titration_steps": [],
+      "is_compounded": false,
+      "popular_in": ["US", "GB"],
+      "sources": [{ "label": "placeholder", "url": "https://www.accessdata.fda.gov/", "accessed": "2026-11-12" }],
+      "verification": "needs_review"
+    }
+  ]
+}

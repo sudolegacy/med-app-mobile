@@ -1,41 +1,39 @@
-This is an Expo/React Native mobile application. Prioritize mobile-first patterns, performance, and cross-platform compatibility.
+# AGENTS.md — Tortue (GLP-1 companion, iOS + Android)
 
-## Expo has changed — do not trust your training data
+Read this before changing anything. It applies to humans and AI agents.
 
-Expo ships breaking changes every SDK release. APIs you remember are likely renamed, moved, or removed. Before writing any code that touches an Expo, EAS, or React Native API:
+## Product guardrails (non-negotiable)
 
-1. Read the major version of the `expo` package in `package.json`.
-2. Fetch the matching versioned docs: `https://docs.expo.dev/versions/v<major>.0.0/`
-3. For anything else, fetch https://docs.expo.dev/llms.txt — an index of all Expo docs with corrections to common LLM misconceptions. Follow its links to the specific page you need; never answer from memory.
+- **General wellness only.** Logging, reminders, education, habit support. Never diagnose, treat, or manage disease.
+- **No dosing advice.** No titration recommendations, no "increase/decrease/skip/stop" suggestions, no medication-level (pharmacokinetic) charts. The catalogue's titration tables are shown as *reference from the label*, never as a plan.
+- Every insight screen shows the footer: "Informational only. Talk to your prescriber before changing anything." (`src/copy`).
+- When choosing between "more features" and "safer wording", choose safer wording.
+- Health data is sensitive: no health values in analytics (`src/core/analytics/events.ts` is the only allowed event contract), no third-party ad SDKs, AI calls only through Supabase Edge Functions after explicit consent naming Anthropic.
+
+## Layout
+
+- `src/app/` — Expo Router routes only (every file is a screen). Keep logic in `src/features/*`.
+- `src/core/` — pure TypeScript domain logic shared with Edge Functions. **No React/RN/Expo imports, no `@/` alias, relative imports must end in `.ts`, only external import allowed is `zod`.** `npm run core:sync` copies it into `supabase/functions/_shared/core/`.
+- `src/db/` — on-device SQLite (expo-sqlite): migrations, row codecs, repositories, outbox. All writes go through repositories so they are queued for sync.
+- `src/sync/` — outbox push / pull with last-write-wins on `client_updated_at`.
+- `src/services/` — adapters for native/3rd-party SDKs (notifications, auth, purchases, analytics, health, supabase).
+- `src/ui/` — design tokens and reusable components. `src/copy/` — all user-facing strings (en-US base, en-GB overrides).
+- `supabase/` — migrations, RLS, seed, Edge Functions (Deno). `tests/` — Vitest suites (core, db via PGlite, golden AI tests).
+- `docs/` — plans per phase, compliance, listings, legal drafts (flagged for counsel).
 
 ## Commands
 
-Use `bunx` instead of `npx` if the project uses bun (`bun.lock` present).
-
 ```bash
-npx expo install <package>  # ALWAYS use instead of npm/yarn/pnpm/bun add — resolves SDK-compatible versions
-npx expo start              # start the dev server
-npx expo lint               # lint
-npx tsc --noEmit            # typecheck
-npx expo-doctor             # diagnose dependency and config issues
-npx expo install --fix      # fix incompatible package versions
+npx expo install <package>  # ALWAYS use instead of npm add — resolves SDK 58-compatible versions
+npm run typecheck           # tsc --noEmit
+npm run lint                # eslint
+npm test                    # vitest (core, db, golden)
+npm run test:rn             # jest-expo + React Native Testing Library (*.rn.test.tsx)
+npm run core:sync           # refresh the Edge Functions' copy of src/core
 ```
 
-Run lint and typecheck before declaring any task done.
+Run typecheck, lint and tests before declaring work done. Never weaken a test to make it pass.
 
-## Navigation & Routing
+## Expo
 
-- Use **Expo Router** for all navigation. Routes live in `src/app/` — every file there is a screen, `_layout.tsx` files define navigators. Keep non-route code (components, hooks, utils) outside `src/app/`.
-- Import `Link`, `router`, and `useLocalSearchParams` from `expo-router`.
-- Docs: https://docs.expo.dev/router/introduction.md
-
-## Building with EAS
-
-Use EAS to build, sign, and submit the app in the cloud (`eas build`, `eas submit`) and to ship over-the-air updates (`eas update`) — no local Xcode or Android Studio required. Run EAS CLI as `bunx eas-cli <command>` in Bun projects, or `npx eas-cli@latest <command>` otherwise; substitute that for bare `eas` in docs examples.
-Docs: https://docs.expo.dev/eas/index.md
-
-## Rules
-
-- If `ios/` and `android/` directories do not exist, they are generated (Continuous Native Generation). Never create or edit them by hand — configure native behavior in `app.json` and config plugins.
-- Expo Go only includes its bundled native modules. After adding a library with native code, the app needs a development build: `npx expo run:ios|android` locally, or `eas build --profile development`.
-- Prefer recommended Expo modules over third-party libraries, and check your available skills before adding dependencies. Docs: https://docs.expo.dev/versions/latest/index.md
+Expo ships breaking changes every SDK. This project is on **Expo SDK 58 / React Native 0.88 (New Architecture)**. Before touching an Expo API, read the versioned docs at `https://docs.expo.dev/versions/v58.0.0/` (index: https://docs.expo.dev/llms.txt) or the installed type definitions in `node_modules`. `ios/` and `android/` are generated (Continuous Native Generation) — configure native behaviour in `app.config.ts` and config plugins only. Native modules require a development build (`eas build --profile development`), not Expo Go.
